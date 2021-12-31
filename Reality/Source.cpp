@@ -1,3 +1,9 @@
+// Disable warnings about default library conflicts, 
+// missing pdb for glew (because glew was compiled with
+// an earlier vs version?), and allocating dynamically
+// on the stack
+#pragma warning( disable : 6255; disable : 4098 99)
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
