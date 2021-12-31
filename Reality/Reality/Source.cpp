@@ -64,7 +64,8 @@ static unsigned int CompileShader(unsigned int type, const std::string& source)
 }
 
 /**
-* @brief                    
+* @brief                Compiles vertex and fragment shader
+                        from source code
 * 
 * @param vertexShader   source code to vertex shader
 * @param fragmentShader source code to fragment shader
@@ -97,7 +98,8 @@ int main(void)
     /* Initialize the library */
     if (!glfwInit())
         return -1;
-    
+
+    // Make the window 720p unless LAUNCH_IN_FULLSCREEN flag is set
     int resX = 1280, resY = 720;
 
 #if LAUNCH_IN_FULLSCREEN
