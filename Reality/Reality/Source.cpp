@@ -27,7 +27,8 @@ int main(void)
         return -2;
     }
 
-    float triangleVertices[6]{
+    // 2D points representing a triangle
+    float triangleVerts[6]{
         -0.5f, -0.5f,
          0.0f,  0.5f,
          0.5f, -0.5f
@@ -38,7 +39,15 @@ int main(void)
     glGenBuffers(1, &buffer);
 
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), triangleVertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), triangleVerts, GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);  // Enable drawing of vertex
+    glColor3f(0.0f, 1.0f, 1.0f);   // Set color
+
+    // Define data structure
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0); 
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
