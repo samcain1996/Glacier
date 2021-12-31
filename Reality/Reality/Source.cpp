@@ -2,6 +2,8 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
+#define LAUNCH_IN_FULLSCREEN 0
+
 /**
 * @brief            Compile shader of type type with source code source
 * 
@@ -44,7 +46,7 @@ static unsigned int CompileShader(unsigned int type, const std::string& source)
         glGetShaderInfoLog(id, length, &length, message);
 
         // Print error
-        std::cerr << "Shader: " << id << " failed to compiled...\n" << message << std::endl;
+        std::cout << "Shader: " << id << " failed to compiled...\n" << message << std::endl;
 
         // Cleanup
         glDeleteShader(id);
@@ -88,9 +90,17 @@ int main(void)
     /* Initialize the library */
     if (!glfwInit())
         return -1;
+    
+    int resX = 1280, resY = 720;
+
+#if LAUNCH_IN_FULLSCREEN
+    const GLFWvidmode* screen = glfwGetVideoMode(glfwGetPrimaryMonitor());
+    resX = screen->width;
+    resY = screen->height;
+#endif
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
+    window = glfwCreateWindow(resX, resY, "Turquoise Triangle", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -105,6 +115,9 @@ int main(void)
         std::cerr << "glewInit failed to complete :(";
         return -2;
     }
+
+    // Print OpenGL version
+    std::cout << glGetString(GL_VERSION) << std::endl;
 
     // 2D points representing a triangle
     float triangleVerts[6] {
