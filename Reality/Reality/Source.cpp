@@ -1,8 +1,15 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
 
 #define LAUNCH_IN_FULLSCREEN 0
+
+// File path to generic shaders
+static const char* GENERIC_VERTEX_SHADER_PATH   = "Shaders/generic_vertex_shader.vert";
+static const char* GENERIC_FRAGMENT_SHADER_PATH = "Shaders/generic_fragment_shader.frag";
 
 /**
 * @brief            Compile shader of type type with source code source
@@ -138,23 +145,22 @@ int main(void)
     // Define data structure
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0); 
 
-    std::string vertexShader =
-        "#version 330 core\n"  // Use OpenGL shader language version 330 and do not allow deprecated funcs
-        "\n"
-        "layout(location = 0) in vec4 position;\n"
-        "void main()\n"
-        "{\n"
-        "   gl_Position = position;\n"
-        "}\n;";
+    std::ostringstream ss;  // string stream to get the entire source code of each shader in one pass
 
-    std::string fragmentShader =
-        "#version 330 core\n"
-        "\n"
-        "layout(location = 0) out vec4 color;\n"
-        "void main()\n"
-        "{\n"
-        "   color = vec4(0.0, 1.0, 0.5, 1.0);\n"
-        "}\n";
+    // Read in source code for generic vertex shader
+    std::ifstream shaderStream(GENERIC_VERTEX_SHADER_PATH);
+    ss << shaderStream.rdbuf();
+    std::string vertexShader = ss.str();
+
+    shaderStream.close();
+    ss = std::ostringstream();
+
+    // Read in source code for generic fragment shader
+    shaderStream = std::ifstream(GENERIC_FRAGMENT_SHADER_PATH);
+    ss << shaderStream.rdbuf();
+    std::string fragmentShader = ss.str();
+
+    // Create and use shader
     unsigned int shader = CreateShader(vertexShader, fragmentShader);
 
     glUseProgram(shader);
