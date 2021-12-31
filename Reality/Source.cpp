@@ -6,10 +6,21 @@
 #include <string>
 
 #define LAUNCH_IN_FULLSCREEN 0
+#define DEBUG_MODE 1
 
 // File path to generic shaders
 static const char* GENERIC_VERTEX_SHADER_PATH   = "Shaders/generic_vertex_shader.vert";
 static const char* GENERIC_FRAGMENT_SHADER_PATH = "Shaders/generic_fragment_shader.frag";
+
+/**
+* @brief            Callback to print error messages that
+*                   occur if DEBUG_MODE flag is set to 1
+*
+*/
+void APIENTRY HandleErrors(unsigned int source, unsigned int type, 
+    unsigned int id, unsigned int severity, int length, const char* message, const void* userParam) {
+    std::cerr << message << std::endl;
+}
 
 /**
 * @brief            Compile shader of type type with source code source
@@ -53,7 +64,7 @@ static unsigned int CompileShader(unsigned int type, const std::string& source)
         glGetShaderInfoLog(id, length, &length, message);
 
         // Print error
-        std::cout << "Shader: " << id << " failed to compiled...\n" << message << std::endl;
+        //std::cout << "Shader: " << id << " failed to compiled...\n" << message << std::endl;
 
         // Cleanup
         glDeleteShader(id);
@@ -115,7 +126,7 @@ int main(void)
         glfwTerminate();
         return -1;
     }
-
+    
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
 
@@ -128,11 +139,25 @@ int main(void)
     // Print OpenGL version
     std::cout << glGetString(GL_VERSION) << std::endl;
 
+#if DEBUG_MODE == 1
+    glEnable(GL_DEBUG_OUTPUT);
+    glDebugMessageCallback(HandleErrors, nullptr);
+#endif
     // 2D points representing a triangle
-    float triangleVerts[6] {
+    float triangleVerts[8] {
+        -0.5f,  0.5f,
         -0.5f, -0.5f,
-         0.0f,  0.5f,
-         0.5f, -0.5f
+         0.5f, -0.5f,
+         0.5f,  0.5f
+    };
+
+    //CheckErrors();
+
+    // Index buffer defining which vertices to use for each triangle
+    // Using an index buffer prevent storing duplicate vertices
+    unsigned int indices[6]{
+        1, 2, 3,
+        0, 1, 3
     };
 
     // Create buffer
@@ -140,12 +165,20 @@ int main(void)
     glGenBuffers(1, &buffer);
 
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), triangleVerts, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(float), triangleVerts, GL_STATIC_DRAW);
+    //CheckErrors();
 
     glEnableVertexAttribArray(0);  // Enable drawing of vertex
 
-    // Define data structure
+    // Define data structure 
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0); 
+
+    unsigned int indexBufferObj;
+    glGenBuffers(1, &indexBufferObj);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferObj);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+    //CheckErrors();
 
     std::ostringstream ss;  // string stream to get the entire source code of each shader in one pass
 
@@ -164,8 +197,10 @@ int main(void)
 
     // Create and use shader
     unsigned int shader = CreateShader(vertexShader, fragmentShader);
+    //CheckErrors();
 
     glUseProgram(shader);
+    //CheckErrors();
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
@@ -173,7 +208,7 @@ int main(void)
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -181,6 +216,8 @@ int main(void)
         /* Poll for and process events */
         glfwPollEvents();
     }
+
+    glDeleteProgram(shader);  // Delete shader when done using it
 
     glfwTerminate();
     return 0;
