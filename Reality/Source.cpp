@@ -11,21 +11,78 @@
 #include <sstream>
 #include <string>
 
+// 0:   Launch in 720p
+// 1:   Launch fullscreen, native resolution
 #define LAUNCH_IN_FULLSCREEN 0
+
+// 0:   No error alerts/logging
+// 1:   Enable error alerts/logging
 #define DEBUG_MODE 1
 
+// 0:   Show Every Debug Message
+// 1:   Show Only Warning Messages
+#define DEBUG_MESSAGE_SEVERITY 1
+
 // File path to generic shaders
-static const char* GENERIC_VERTEX_SHADER_PATH   = "Shaders/generic_vertex_shader.vert";
-static const char* GENERIC_FRAGMENT_SHADER_PATH = "Shaders/generic_fragment_shader.frag";
+const char* GENERIC_VERTEX_SHADER_PATH   = "Shaders/generic_vertex_shader.vert";
+const char* GENERIC_FRAGMENT_SHADER_PATH = "Shaders/generic_fragment_shader.frag";
+
+// struct representing a vertex that
+// carries an x and y coordinate
+typedef struct PositionVertex2D
+{
+    float posX;
+    float posY;
+} PositionVertex2D;
+
+// struct representing a triangle
+typedef struct Triangle2D
+{
+    PositionVertex2D& vertA;
+    PositionVertex2D& vertB;
+    PositionVertex2D& vertC;
+} Triangle2D;
 
 /**
 * @brief            Callback to print error messages that
 *                   occur if DEBUG_MODE flag is set to 1
 *
 */
-void APIENTRY HandleErrors(unsigned int source, unsigned int type, 
-    unsigned int id, unsigned int severity, int length, const char* message, const void* userParam) {
+void APIENTRY HandleErrors(unsigned int source, unsigned int type,
+    unsigned int id, unsigned int severity, int length, const char* message, const void* userParam) 
+{
+    if (severity == GL_DEBUG_SEVERITY_NOTIFICATION) { return; }
     std::cerr << message << std::endl;
+}
+
+/**
+* @brief                Returns the source for a generic vertex
+*                       shader and a generic fragment shader
+*                       ( probably will not remain in code
+*                       for long )
+* @param vertexShader   string to store vertex shader source code
+* @param fragmentShader string to store fragment shader source code
+*/
+static void GetGenericShadersSource(std::string& vertexShader,
+    std::string& fragmentShader) 
+{
+    // Ensure strings are empty
+    vertexShader.clear(); fragmentShader.clear();
+
+    std::ostringstream ss;  // string stream to get the entire source code of each shader in one pass
+
+   // Read in source code for generic vertex shader
+    std::ifstream shaderStream(GENERIC_VERTEX_SHADER_PATH);
+    ss << shaderStream.rdbuf();
+    vertexShader = ss.str();
+
+    shaderStream.close();
+    ss = std::ostringstream();
+
+    // Read in source code for generic fragment shader
+    shaderStream = std::ifstream(GENERIC_FRAGMENT_SHADER_PATH);
+    ss << shaderStream.rdbuf();
+    fragmentShader = ss.str();
 }
 
 /**
@@ -145,19 +202,23 @@ int main(void)
     // Print OpenGL version
     std::cout << glGetString(GL_VERSION) << std::endl;
 
-#if DEBUG_MODE == 1
+#if DEBUG_MODE
     glEnable(GL_DEBUG_OUTPUT);
+
+#if DEBUG_MESSAGE_SEVERITY > 0
+    glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, 0, GL_FALSE);
+#endif
+
     glDebugMessageCallback(HandleErrors, nullptr);
 #endif
-    // 2D points representing a triangle
-    float triangleVerts[8] {
-        -0.5f,  0.5f,
-        -0.5f, -0.5f,
-         0.5f, -0.5f,
-         0.5f,  0.5f
-    };
 
-    //CheckErrors();
+    // 2D points representing triangles
+    PositionVertex2D triangleVerts[4]{
+            PositionVertex2D(-0.5f,  0.5f),
+            PositionVertex2D(-0.5f, -0.5f),
+            PositionVertex2D( 0.5f, -0.5f),
+            PositionVertex2D( 0.5f,  0.5f)
+    };
 
     // Index buffer defining which vertices to use for each triangle
     // Using an index buffer prevent storing duplicate vertices
@@ -172,7 +233,6 @@ int main(void)
 
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
     glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(float), triangleVerts, GL_STATIC_DRAW);
-    //CheckErrors();
 
     glEnableVertexAttribArray(0);  // Enable drawing of vertex
 
@@ -184,29 +244,14 @@ int main(void)
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferObj);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
-    //CheckErrors();
 
-    std::ostringstream ss;  // string stream to get the entire source code of each shader in one pass
-
-    // Read in source code for generic vertex shader
-    std::ifstream shaderStream(GENERIC_VERTEX_SHADER_PATH);
-    ss << shaderStream.rdbuf();
-    std::string vertexShader = ss.str();
-
-    shaderStream.close();
-    ss = std::ostringstream();
-
-    // Read in source code for generic fragment shader
-    shaderStream = std::ifstream(GENERIC_FRAGMENT_SHADER_PATH);
-    ss << shaderStream.rdbuf();
-    std::string fragmentShader = ss.str();
+    // Get source code for vertex and fragment shaders
+    std::string vertexShader, fragmentShader;
+    GetGenericShadersSource(vertexShader, fragmentShader);
 
     // Create and use shader
     unsigned int shader = CreateShader(vertexShader, fragmentShader);
-    //CheckErrors();
-
     glUseProgram(shader);
-    //CheckErrors();
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
