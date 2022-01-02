@@ -10,6 +10,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include "Colors.h"
 
 // 0:   Launch in 720p
 // 1:   Launch fullscreen, native resolution
@@ -253,9 +254,10 @@ int main(void)
     unsigned int shader = CreateShader(vertexShader, fragmentShader);
     glUseProgram(shader);
     
+    // Define the color to draw in the fragment shader
     int location = glGetUniformLocation(shader, "u_Color");
-    glUniform4f(location, 1.0f, 1.0f, 0.0f, 1.0f);
-
+    glUniform4fv(location, 1, Color::Red);
+    
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
