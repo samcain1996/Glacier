@@ -26,6 +26,13 @@ typedef struct Color {
 		return *this;
 	}
 
+	Color& operator-=(const Vec3f& rhs) 
+	{
+		rgba[0] -= rhs.x;
+		rgba[1] -= rhs.y;
+		rgba[2] -= rhs.z;
+	}
+
 	Color(const float color[4]) 
 	{
 		rgba[0] = color[0];
