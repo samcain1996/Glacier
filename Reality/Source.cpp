@@ -255,14 +255,19 @@ int main(void)
     glUseProgram(shader);
     
     // Define the color to draw in the fragment shader
-    int location = glGetUniformLocation(shader, "u_Color");
-    glUniform4fv(location, 1, Color::Red);
+    Color color = colors::Red;
+    int colorUniformLocation = glGetUniformLocation(shader, "u_Color");
+    glUniform4fv(colorUniformLocation, 1, color);
     
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
+
+        // Change the color
+        colors::RotateColor_s(color, Vec3f(0.001, 0.0002, 0.0015));
+        glUniform4fv(colorUniformLocation, 1, color);
 
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 

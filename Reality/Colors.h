@@ -9,15 +9,19 @@
  * 
  */
 #pragma once
+#include "Defs.h"
 
-namespace Color {
+namespace colors {
 
 	const float Red[4]    = { 1.0f, 0.0f, 0.0f, 1.0f };
 	const float Green[4]  = { 0.0f, 1.0f, 0.0f, 1.0f };
 	const float Blue[4]   = { 0.0f, 0.0f, 1.0f, 1.0f };
 	const float Yellow[4] = { 1.0f, 1.0f, 0.0f, 1.0f };
 	const float Purple[4] = { 1.0f, 0.0f, 1.0f, 1.0f };
+	const float Cyan[4]	  = { 0.0f, 1.0f, 1.0f, 1.0f };
 	const float Black[4]  = { 0.0f, 0.0f, 0.0f, 1.0f };
 	const float White[4]  = { 1.0f, 1.0f, 1.0f, 1.0f };
 
+	void RotateColor(Color& color, const Vec3f& rotator);
+	void RotateColor_s(Color& color, const Vec3f& rotator);
 }
