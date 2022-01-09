@@ -23,7 +23,15 @@ namespace colors {
 	const float Black[4]  = { 0.0f, 0.0f, 0.0f, 1.0f };
 	const float White[4]  = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-	// Change color by amount in rotator
+	/**
+	 * @brief 				Change color by amount in rotator
+	 * 						no bounds checking
+	 * 
+	 * @param color 		color to change
+	 * @param rotator 		r, g, and b values to change by
+	 */
 	void RotateColor(Color& color, const Vec3f& rotator);
+
+	// Same as above with bounds checking
 	void RotateColor_s(Color& color, const Vec3f& rotator);
 }

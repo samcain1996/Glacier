@@ -1,3 +1,13 @@
+/**
+ * @file Defs.h
+ * @author Sam Cain (samuelrcain@gmail.com)
+ * @brief  Custom types used throughout project
+ * @version 0.1
+ * @date 2022-01-08
+ * 
+ * @copyright Copyright (c) 2022
+ * 
+ */
 #pragma once
 
 typedef struct Vec3f 
