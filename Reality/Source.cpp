@@ -1,8 +1,8 @@
 // Disable warnings about default library conflicts, 
 // missing pdb for glew (because glew was compiled with
-// an earlier vs version?), and allocating dynamically
+// an earlier VS version?), and allocating dynamically
 // on the stack
-#pragma warning( disable : 6255; disable : 4098 99)
+#pragma warning ( disable : 6255; disable : 4098 99 )
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -12,7 +12,7 @@
 #include <string>
 #include "Colors.h"
 
-// 0:   Launch in 720p
+// 0:   Launch in quarter resolution
 // 1:   Launch fullscreen, native resolution
 #define LAUNCH_IN_FULLSCREEN 0
 
@@ -21,28 +21,12 @@
 #define DEBUG_MODE 1
 
 // 0:   Show Every Debug Message
-// 1:   Show Only Warning Messages
-#define DEBUG_MESSAGE_SEVERITY 1
+// 1:   Show Only Warning Messages and More Severe
+#define DEBUG_MESSAGE_SEVERITY 0
 
 // File path to generic shaders
 const char* GENERIC_VERTEX_SHADER_PATH   = "Shaders/generic_vertex_shader.vert";
 const char* GENERIC_FRAGMENT_SHADER_PATH = "Shaders/generic_fragment_shader.frag";
-
-// struct representing a vertex that
-// carries an x and y coordinate
-typedef struct PositionVertex2D
-{
-    float posX;
-    float posY;
-} PositionVertex2D;
-
-// struct representing a triangle
-typedef struct Triangle2D
-{
-    PositionVertex2D& vertA;
-    PositionVertex2D& vertB;
-    PositionVertex2D& vertC;
-} Triangle2D;
 
 /**
 * @brief            Callback to print error messages that
@@ -52,7 +36,7 @@ typedef struct Triangle2D
 void APIENTRY HandleErrors(unsigned int source, unsigned int type,
     unsigned int id, unsigned int severity, int length, const char* message, const void* userParam) 
 {
-    if (severity == GL_DEBUG_SEVERITY_NOTIFICATION) { return; }
+    if (severity == GL_DEBUG_SEVERITY_NOTIFICATION && DEBUG_MESSAGE_SEVERITY) { return; }
     std::cerr << message << std::endl;
 }
 
@@ -174,19 +158,25 @@ int main(void)
     if (!glfwInit())
         return -1;
 
-    // Make the window 720p unless LAUNCH_IN_FULLSCREEN flag is set
-    int resX = 1280, resY = 720;
-
-#if LAUNCH_IN_FULLSCREEN
     const GLFWvidmode* screen = glfwGetVideoMode(glfwGetPrimaryMonitor());
-    resX = screen->width;
-    resY = screen->height;
+    const float aspectRatio = screen->width / screen->height;
+    // Make the window quarter resolution if LAUNC_IN_FULLSCREEN is false
+    int resX = screen->width / 2, resY = screen->height / 2;
+#if LAUNCH_IN_FULLSCREEN
+    resX *= 2;
+    resY *= 2;
 #endif
+
+    // Set Version
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     /* Create a windowed mode window and its OpenGL context */
     window = glfwCreateWindow(resX, resY, "Turquoise Triangle", NULL, NULL);
     if (!window)
     {
+        std::cerr << "Damn, you did something to prevent the window from even being created. SMH 😔" << std::endl;
         glfwTerminate();
         return -1;
     }
@@ -228,11 +218,26 @@ int main(void)
         0, 1, 3
     };
 
-    // Create buffer
-    unsigned int buffer;
-    glGenBuffers(1, &buffer);
+    /*
+    *
+    *  FLOW: 1. Create & bind vertex array object to store the format for vertex buffer
+    *        2. Create & bind vertex buffer to store data
+    *        3. Create & bind index buffer to store location data
+    *        4. Create shaders
+    *        5. Define color
+    * 
+    */
 
-    glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    // Create vertex array object to define data format
+    unsigned int vertexArrObj;
+    glGenVertexArrays(1, &vertexArrObj);
+    glBindVertexArray(vertexArrObj);
+
+    // Create vertex buffer to define geometry
+    unsigned int vertexBuffer;
+    glGenBuffers(1, &vertexBuffer);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(float), triangleVerts, GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);  // Enable drawing of vertex
@@ -240,11 +245,12 @@ int main(void)
     // Define data structure 
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0); 
 
+    // Create index buffer
     unsigned int indexBufferObj;
     glGenBuffers(1, &indexBufferObj);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferObj);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 4 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
 
     // Get source code for vertex and fragment shaders
     std::string vertexShader, fragmentShader;
@@ -252,12 +258,15 @@ int main(void)
 
     // Create and use shader
     unsigned int shader = CreateShader(vertexShader, fragmentShader);
-    glUseProgram(shader);
     
     // Define the color to draw in the fragment shader
-    Color color = colors::Red;
+    Color color = colors::Black;
     int colorUniformLocation = glGetUniformLocation(shader, "u_Color");
-    glUniform4fv(colorUniformLocation, 1, color);
+   
+    // Clear buffer bindings
+    glUseProgram(0);
+    glBindBuffer(GL_ARRAY_BUFFER,0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
     
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
@@ -265,8 +274,17 @@ int main(void)
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
+        // Bind buffers
+        glUseProgram(shader);
+        glUniform4fv(colorUniformLocation, 1, color);
+
+        glBindVertexArray(vertexArrObj);
+
+        glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferObj);
+
         // Change the color
-        colors::RotateColor_s(color, Vec3f(0.001, 0.0002, 0.0015));
+        colors::RotateColor_s(color, Vec3f(0.001f, 0.0012f, 0.00016f));
         glUniform4fv(colorUniformLocation, 1, color);
 
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);

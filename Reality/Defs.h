@@ -10,12 +10,22 @@
  */
 #pragma once
 
+typedef struct Arr2f
+{
+	float xy[2] = { 0, 0 };
+} Arr2f;
+
 typedef struct Vec3f 
 {
 	float x;
 	float y;
 	float z;
 } Vec3f;
+
+typedef struct Arr3f
+{
+	float xyz[3] = {0, 0, 0};  // Default Constructor?
+} Arr3f;
 
 typedef struct vec4f
 {
@@ -24,6 +34,25 @@ typedef struct vec4f
 	float y;
 	float z;
 } vec4f;
+
+typedef struct Arr4f
+{
+	float wxyz[4] = { 0, 0, 0, 0 };  // Default Constructor
+} Arr4f;
+
+// vertex that carries an x and y coordinate
+typedef struct PositionVertex2D
+{
+	float posX;
+	float posY;
+} PositionVertex2D;
+
+typedef struct Triangle2D
+{
+	PositionVertex2D& vertA;
+	PositionVertex2D& vertB;
+	PositionVertex2D& vertC;
+} Triangle2D;
 
 typedef struct Color {
 	float rgba[4];
