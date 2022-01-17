@@ -260,7 +260,7 @@ int main(void)
     unsigned int shader = CreateShader(vertexShader, fragmentShader);
     
     // Define the color to draw in the fragment shader
-    Color color = colors::Black;
+    colors::Color color = colors::Black;
     int colorUniformLocation = glGetUniformLocation(shader, "u_Color");
    
     // Clear buffer bindings
