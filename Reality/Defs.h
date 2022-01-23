@@ -49,7 +49,13 @@ typedef struct PositionVertex2D
 
 typedef struct Triangle2D
 {
-	PositionVertex2D& vertA;
-	PositionVertex2D& vertB;
-	PositionVertex2D& vertC;
+	PositionVertex2D verts[3];
+
+	Triangle2D(PositionVertex2D& v1, PositionVertex2D& v2, PositionVertex2D& v3)
+	{
+		verts[0] = v1;
+		verts[1] = v2;
+		verts[2] = v3;
+	}
+
 } Triangle2D;

@@ -11,6 +11,7 @@
 #include <sstream>
 #include <string>
 #include "Colors.h"
+#include "Move.h"
 
 // 0:   Launch in quarter resolution
 // 1:   Launch fullscreen, native resolution
@@ -203,18 +204,23 @@ int main(void)
     glDebugMessageCallback(HandleErrors, nullptr);
 #endif
 
+    PositionVertex2D a(-0.5f,  0.5f);
+    PositionVertex2D b(-0.5f, -0.5f);
+    PositionVertex2D c( 0.5f,  0.5f);
+    Triangle2D triangle(a, b, c);
+
     // 2D points representing triangles
-    PositionVertex2D triangleVerts[4]{
-            PositionVertex2D(-0.5f,  0.5f),
-            PositionVertex2D(-0.5f, -0.5f),
-            PositionVertex2D( 0.5f, -0.5f),
-            PositionVertex2D( 0.5f,  0.5f)
-    };
+    // PositionVertex2D triangleVerts[4]{
+    //         PositionVertex2D(-0.5f,  0.5f),
+    //         PositionVertex2D(-0.5f, -0.5f),
+    //         PositionVertex2D( 0.5f, -0.5f),
+
+    // };
 
     // Index buffer defining which vertices to use for each triangle
     // Using an index buffer prevent storing duplicate vertices
-    unsigned int indices[6]{
-        1, 2, 3,
+    unsigned int indices[3]{
+        // 1, 2, 3,
         0, 1, 3
     };
 
@@ -238,7 +244,7 @@ int main(void)
     glGenBuffers(1, &vertexBuffer);
 
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(float), triangleVerts, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(float), triangle.verts, GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);  // Enable drawing of vertex
 
@@ -267,12 +273,18 @@ int main(void)
     glUseProgram(0);
     glBindBuffer(GL_ARRAY_BUFFER,0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
+
+    int deg = 0;
     
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
+
+        PositionVertex2D temp(0, 0);
+        move::rotate(triangle, temp, ++deg);
+        if (deg >= 360) { deg = 0; }
 
         // Bind buffers
         glUseProgram(shader);
